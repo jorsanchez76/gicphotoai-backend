@@ -58,7 +58,7 @@ npm run dev
 
 Todos los endpoints requieren el header:
 \`\`\`
-key: lPhXzI3Fv;TF(>R
+key: {aBcDeFgHiJKlMnO}
 \`\`\`
 
 ## Health Check
