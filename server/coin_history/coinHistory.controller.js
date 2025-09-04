@@ -212,7 +212,10 @@ exports.getUserCoinStats = async (req, res) => {
       createCoins,
       editCoins,
       upscalerCoins,
-      generateCoins
+      generateCoins,
+      faceSwapCoins,
+      ideogramCoins,
+      qwenEditCoins
     ] = await Promise.all([
       CoinHistory.getTotalCoins(options),
       CoinHistory.getTotalCoins({ ...options, type: 1, isIncome: true }), // Purchase
@@ -222,7 +225,10 @@ exports.getUserCoinStats = async (req, res) => {
       CoinHistory.getTotalCoins({ ...options, type: 3, isIncome: false }), // Create
       CoinHistory.getTotalCoins({ ...options, type: 4, isIncome: false }), // Edit
       CoinHistory.getTotalCoins({ ...options, type: 5, isIncome: false }), // Upscaler
-      CoinHistory.getTotalCoins({ ...options, type: 6, isIncome: false })  // Generate
+      CoinHistory.getTotalCoins({ ...options, type: 6, isIncome: false }), // Generate
+      CoinHistory.getTotalCoins({ ...options, type: 7, isIncome: false }), // Face Swap
+      CoinHistory.getTotalCoins({ ...options, type: 8, isIncome: false }), // Ideogram Character
+      CoinHistory.getTotalCoins({ ...options, type: 9, isIncome: false })  // Qwen Image Edit
     ]);
 
     return res.status(200).json({
@@ -239,7 +245,10 @@ exports.getUserCoinStats = async (req, res) => {
           create: Math.abs(createCoins),
           edit: Math.abs(editCoins),
           upscaler: Math.abs(upscalerCoins),
-          generate: Math.abs(generateCoins)
+          generate: Math.abs(generateCoins),
+          faceSwap: Math.abs(faceSwapCoins),
+          ideogram: Math.abs(ideogramCoins),
+          qwenEdit: Math.abs(qwenEditCoins)
         }
       }
     });
@@ -292,7 +301,10 @@ exports.getCoinHistoryByType = async (req, res) => {
       3: 'Photo Creation',
       4: 'Photo Editing',
       5: 'Photo Upscaling',
-      6: 'Generation'
+      6: 'Generate',
+      7: 'Face Swap',
+      8: 'Ideogram Character',
+      9: 'Qwen Image Edit'
     };
 
     return res.status(200).json({

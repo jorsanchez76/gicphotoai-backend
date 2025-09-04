@@ -10,7 +10,10 @@ const TYPE_MAPPING = {
   3: { label: 'Create', color: '#2196f3' },
   4: { label: 'Edit', color: '#673ab7' },
   5: { label: 'Upscaler', color: '#009688' },
-  6: { label: 'Generate', color: '#e91e63' }
+  6: { label: 'Generate', color: '#e91e63' },
+  7: { label: 'Face Swap', color: '#FF5722' },
+  8: { label: 'Ideogram', color: '#9C27B0' },
+  9: { label: 'Qwen Edit', color: '#3F51B5' }
 };
 
 // Create rounded rectangle with fill
@@ -103,35 +106,38 @@ async function generateCoinHistoryReport(reportData, fileName) {
       for (const record of reportData.records) {
         const currentY = doc.y;
         
-        // Check if we need a new page
-        if (currentY > doc.page.height - 100) {
+        // Check if we need a new page (accounting for row height and spacing)
+        const rowHeight = 20; // Approximate height of a row
+        if (currentY > doc.page.height - 100 - rowHeight) {
           doc.addPage();
           doc.fontSize(10).fillColor('#000000');
+          // Reset Y position to top of new page (accounting for margins)
+          doc.y = 100;
         }
         
         // DATE column
         const dateText = new Date(record.date).toISOString().replace('T', ' ').slice(0, 19);
-        doc.fillColor('#000000').fontSize(10).text(dateText, 30, currentY + 2, { width: colWidth });
+        doc.fillColor('#000000').fontSize(10).text(dateText, 30, doc.y + 2, { width: colWidth });
 
         // DIRECTION column
         const directionColor = record.is_income ? '#4caf50' : '#f44336';
         const directionText = record.is_income ? 'Income' : 'Expense';
-        addTextWithRoundedBackground(doc, directionText, 30 + colWidth, currentY, directionColor);
+        addTextWithRoundedBackground(doc, directionText, 30 + colWidth, doc.y, directionColor);
         
         // COINS column
         const coinSign = record.is_income ? '+' : '-';
         const coinColor = record.is_income ? '#4caf50' : '#f44336';
         const coinText = `${coinSign}${record.coin}`;
         doc.fillColor(coinColor);
-        doc.fontSize(10).text(coinText, 30 + colWidth * 2, currentY + 2, { width: colWidth });
+        doc.fontSize(10).text(coinText, 30 + colWidth * 2, doc.y + 2, { width: colWidth });
         
         // DOLLARS column
         const dollarText = record.is_income ? record.dollar.toString() : '-';
-        doc.fillColor('#000000').text(dollarText, 30 + colWidth * 3, currentY + 2, { width: colWidth });
+        doc.fillColor('#000000').text(dollarText, 30 + colWidth * 3, doc.y + 2, { width: colWidth });
         
         // TYPE column
         const typeInfo = TYPE_MAPPING[record.type] || { label: 'Unknown', color: '#757575' };
-        addTextWithRoundedBackground(doc, typeInfo.label, 30 + colWidth * 4, currentY, typeInfo.color);
+        addTextWithRoundedBackground(doc, typeInfo.label, 30 + colWidth * 4, doc.y, typeInfo.color);
         
         // Calculate total coins
         totalCoins += record.is_income ? record.coin : -record.coin;

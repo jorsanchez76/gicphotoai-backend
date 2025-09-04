@@ -126,14 +126,11 @@ exports.list = async (req, res) => {
     }
 
     const inFolderParam = req.body.inFolder;
-    //const folderPath = path.join(__dirname, '../../storage', inFolderParam, "/");
     const folderPath = path.resolve(__dirname, '../../storage', inFolderParam);
-    //const folderPath = "/Volumes/2TbJorgeSuperFast/Workspace/Flirtzy v2402 3 Web Para PROD kawaiicontact/flirtzy-backend/storage/GenerativeReplicate/67833b7251db22aa46e720c9/images";
 
-    //return res.status(200).json({ status: true, message: "Success" });
-    // Verificar si el directorio existe
-    
     console.log('JSR Gichub List folderPath: ', folderPath);
+    
+    // Verificar si el directorio existe
     try {
       await fs.promises.access(folderPath);
     } catch (error) {
@@ -144,43 +141,70 @@ exports.list = async (req, res) => {
       });
     }
 
-    // Obtener lista de archivos
+    // SOLUCIÓN: Forzar sync del filesystem antes de leer
+    try {
+      // Sync explícito del directorio para evitar race conditions
+      const dirHandle = await fs.promises.opendir(folderPath);
+      await dirHandle.close();
+      console.log('JSR Gichub List - Directory sync completed');
+    } catch (syncError) {
+      console.log('JSR Gichub List - Directory sync warning:', syncError.message);
+    }
+
     console.log('JSR Gichub List getFiles');
     const files = await fs.promises.readdir(folderPath);
     
-    // Obtener detalles de cada archivo
-    const fileDetails = await Promise.all(
-      files.map(async (file) => {
-        const filePath = path.join(folderPath, file);
-        const stats = await fs.promises.stat(filePath);
-
+    // SOLUCIÓN: Procesar archivos secuencialmente con reintentos para evitar race conditions
+    const fileDetails = [];
+    for (const file of files) {
+      const filePath = path.join(folderPath, file);
+      
+      let stats = null;
+      let attempts = 0;
+      const maxAttempts = 3;
+      
+      // Reintentar stat() con pequeño delay para manejar filesystem caching
+      while (attempts < maxAttempts && !stats) {
+        try {
+          stats = await fs.promises.stat(filePath);
+        } catch (statError) {
+          attempts++;
+          if (attempts < maxAttempts) {
+            // Pequeño delay antes del reintento (10ms)
+            await new Promise(resolve => setTimeout(resolve, 10));
+            console.log(`JSR Gichub List - Retrying stat for file ${file}, attempt ${attempts}`);
+          } else {
+            console.log(`JSR Gichub List - Skipping file ${file} - stat failed after ${maxAttempts} attempts:`, statError.message);
+            continue; // Saltar este archivo si no se puede acceder
+          }
+        }
+      }
+      
+      // Solo incluir archivos que se pudieron leer correctamente
+      if (stats) {
         const download_url = baseURL + "storage/" + inFolderParam + "/" + file;
         
-        return {
+        fileDetails.push({
           name: file,
           download_url: download_url,
           size: stats.size,
           isDirectory: stats.isDirectory(),
           created: stats.birthtime,
           modified: stats.mtime
-        };
-      })
-    );
+        });
+      }
+    }
 
     console.log('JSR Gichub List Files: ', fileDetails);
 
     return res.status(200).json({
       status: true,
       message: "Success",
-      //data: {
-      //  path: inFolderParam,
-      //  files: fileDetails
-      //}
       files: fileDetails
     });
 
   } catch (error) {
-    console.log(error);
+    console.log('JSR Gichub List Error: ', error);
     return res.status(500).json({ status: false, message: error.message || "Server Error" });
   }
 };
