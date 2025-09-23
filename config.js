@@ -9,8 +9,7 @@ module.exports = {
   JWT_SECRET: "XtC9fWcBSf",
 
   //baseUrl for local development
-  //baseURL: "http://192.168.100.187:3002/",
-  baseURL: "http://137.184.119.108:3002/",
+  baseURL: "http://143.110.141.92:3002/",
 
   //SQLite database path
   DB_PATH: "./gicphotoai.db",

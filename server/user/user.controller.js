@@ -47,23 +47,17 @@ exports.userProfile = async (req, res) => {
       findUser = await User.findById(ID);
     }
     
-    // Handle POST request (by identity/email)
+    // Handle POST request (by identity only)
     if (req.method === 'POST') {
       const { identity, email, fcm_token, loginType, country } = req.body;
       
       console.log('POST userProfile - Request body:', { identity, email, fcm_token, loginType, country });
       
-      // Try to find user by identity first, then by email
+      // Try to find user by identity only
       if (identity) {
         console.log('Searching user by identity:', identity);
         findUser = await User.findOne({ identity: identity });
         console.log('User found by identity:', findUser ? 'YES' : 'NO');
-      }
-      
-      if (!findUser && email) {
-        console.log('Searching user by email:', email);
-        findUser = await User.findOne({ email: email });
-        console.log('User found by email:', findUser ? 'YES' : 'NO');
       }
       
       // Update FCM token if user found and token provided
