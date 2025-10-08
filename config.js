@@ -10,7 +10,7 @@ module.exports = {
 
   //baseUrl for local development
   baseURL: "http://143.110.141.92:3002/",
-
+  
   //SQLite database path
   DB_PATH: "./gicphotoai.db",
 

@@ -56,9 +56,11 @@ async function initializeTables() {
         coin_charge INTEGER DEFAULT 0,
         payment_gateway TEXT DEFAULT '[]',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        is_data BOOLEAN DEFAULT 0
       );
     `);
+
 
     // Users table
     await db.exec(`
